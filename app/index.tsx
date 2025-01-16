@@ -12,7 +12,6 @@ import Animated, {
     useSharedValue,
     useAnimatedStyle,
     FadeInDown,
-    BounceIn,
     ZoomInUp,
     interpolateColor,
     withSequence,
@@ -22,76 +21,72 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 
-const width = Dimensions.get('window').width;
-const height = Dimensions.get('screen').height;
+const width = Dimensions.get('window').width; // Get device screen width
+const height = Dimensions.get('screen').height; // Get device screen height
 
 const SplashScreen = () => {
-    const router = useRouter();
-    const [imageIndex, setImageIndex] = useState(0);
-    const radius = useSharedValue(300);  // Start with a small radius
-    const scale = useSharedValue(0);    // Scale for the circle
+    const router = useRouter(); // Used for navigation
+    const [imageIndex, setImageIndex] = useState(0); // Tracks which screen to show
+    const radius = useSharedValue(300);  // Animation value for circle radius
+    const scale = useSharedValue(0);    // Animation value for circle scaling
 
+    // Animation logic for imageIndex === 1
     useEffect(() => {
         if (imageIndex === 1) {
-            // Start with a delay then animate
             setTimeout(() => {
                 radius.value = withSequence(
-                    withSpring(width * 0.1, {
-                        duration: 500
-                    }),    // First shrink a bit
-                    withSpring(width * 2, {     // Then expand
-                        damping: 20,
-                        stiffness: 90
-                    })
+                    withSpring(width * 0.1, { duration: 1000 }), // Shrinks a bit
+                    withSpring(width * 2, { damping: 20, stiffness: 90 }) // Expands fully
                 );
-                scale.value = withSpring(1, {   // Scale up
-                    damping: 20,
-                    stiffness: 90
-                });
+                scale.value = withSpring(1, { damping: 20, stiffness: 90 }); // Scales up the circle
             }, 100);
         }
     }, [imageIndex]);
 
+    // Animated style for the circle
     const animatedStyle = useAnimatedStyle(() => {
         const backgroundColor = interpolateColor(
             radius.value,
             [50, width * 2],
-            ['#AB5CFD', '#6A5AE0']
+            ['#AB5CFD', '#6A5AE0'] // Gradual color transition
         );
 
         return {
             width: radius.value * 2,
             height: radius.value * 2,
-            borderRadius: radius.value,
+            borderRadius: radius.value, // Ensures it stays a circle
             backgroundColor,
             transform: [
-                { translateX: -radius.value },
+                { translateX: -radius.value }, // Centers the circle
                 { translateY: -radius.value },
-                { scale: scale.value }
+                { scale: scale.value }, // Adds scaling effect
             ],
         };
     });
 
+    // Handles the imageIndex state transitions with delay
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            setImageIndex((prev) => prev + 1);
+            setImageIndex((prev) => prev + 1); // Move to the next screen
         }, 2000);
 
         if (imageIndex === 2) {
-            clearTimeout(timeoutId);
-            // router.push('/home');
+            clearTimeout(timeoutId); // Clear timeout when animation ends
+            // router.push('/home'); // Uncomment to navigate to the home screen
         }
 
-        return () => clearTimeout(timeoutId);
+        return () => clearTimeout(timeoutId); // Cleanup on component unmount
     }, [imageIndex]);
 
-const CustomLinear = Animated.createAnimatedComponent(LinearGradient)
+    // Wrap LinearGradient with Animated for animations
+    const CustomLinear = Animated.createAnimatedComponent(LinearGradient);
 
     return (
         <LinearGradient
             colors={imageIndex === 2 ? ['#6A5AE0', '#AB5CFD'] : ['#ffffff', '#ffffff']}
             style={styles.gradientContainer}
         >
+            {/* First screen with ImageBackground */}
             {imageIndex === 0 ? (
                 <ImageBackground
                     key="imageOne"
@@ -99,40 +94,39 @@ const CustomLinear = Animated.createAnimatedComponent(LinearGradient)
                     source={require('../assets/images/UniClients-1.png')}
                 >
                     <Animated.Image
-                        entering={ZoomInUp.delay(50).duration(500).springify().damping(8)}
+                        entering={ZoomInUp.delay(50).duration(500).springify().damping(8)} // Animated entry
                         source={require('../assets/images/UniClients-2.png')}
                         style={styles.imageOne}
                     />
                 </ImageBackground>
             ) : imageIndex === 1 ? (
-                <CustomLinear start={{ x: 1, y: 0 }} colors={['#6A5AE0', '#AB5CFD']} style={[styles.circle, animatedStyle]} >
-                <Animated.Image  entering={ZoomIn.delay(50).duration(500).springify().damping(8)} style={{zIndex: 999}} source={require('../assets/images/UniClients-3.png')} />
+                // Second screen with animated circle
+                <CustomLinear start={{ x: 1, y: 0 }} colors={['#6A5AE0', '#AB5CFD']} style={[styles.circle, animatedStyle]}>
+                    <Animated.Image
+                        entering={ZoomIn.delay(50).duration(500).springify().damping(4)} // Animated image entry
+                        style={{ zIndex: 999 }}
+                        source={require('../assets/images/UniClients-3.png')}
+                    />
                 </CustomLinear>
             ) : (
                 imageIndex === 2 && (
+                    // Final screen with logo and button
                     <Animated.View key="imageFour" style={styles.lastContainer}>
-                    <View style={styles.logoCon}>
-                        <Image
-                            style={styles.logo}
-                            source={require('../assets/images/logo.png')}
+                        <View style={styles.logoCon}>
+                            <Image
+                                style={styles.logo}
+                                source={require('../assets/images/logo.png')}
+                            />
+                        </View>
+                        <Animated.Image
+                            entering={FadeInDown.delay(50).duration(400)} // Fade-in animation
+                            source={require('../assets/images/UniClients-5.png')}
+                            style={styles.imageFour}
                         />
-                    </View>
-                    <Animated.Image
-                        entering={FadeInDown.delay(50).duration(600)}
-                        source={require('../assets/images/UniClients-5.png')}
-                        style={styles.imageFour}
-                    />
-                    <Animated.View
-                        entering={FadeInDown.delay(50).duration(500)}
-                        style={styles.buttonCon}
-                    >
-                        <TouchableOpacity style={styles.button}>
-                            <Text style={{ color: '#fff', fontWeight: 'bold' }}>Hello</Text>
+                        <TouchableOpacity onPress={() => router.push('/home')} style={styles.button}>
+                            <Text style={{ color: '#fff', fontWeight: 'bold' }}>Continue</Text>
                         </TouchableOpacity>
                     </Animated.View>
-                </Animated.View> 
-
-
                 )
             )}
         </LinearGradient>
@@ -153,16 +147,6 @@ const styles = StyleSheet.create({
         resizeMode: 'contain',
         alignSelf: 'center',
     },
-    imageTwo: {
-        width: width * 0.8,
-        height: width * 0.8,
-        resizeMode: 'contain',
-        alignSelf: 'center',
-    },
-    circleContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
     imageFour: {
         resizeMode: 'contain',
     },
@@ -182,11 +166,6 @@ const styles = StyleSheet.create({
         zIndex: 100,
         marginTop: 20,
     },
-    buttonCon: {
-        width: '100%',
-        position: 'absolute',
-        bottom: 20,
-    },
     button: {
         width: '90%',
         borderRadius: 12,
@@ -195,6 +174,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         alignSelf: 'center',
+        position: 'absolute',
+        bottom: 20,
+        zIndex: 1000,
     },
     circle: {
         position: 'absolute',
@@ -202,7 +184,7 @@ const styles = StyleSheet.create({
         left: width / 2,
         zIndex: 409,
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
     },
 });
 
