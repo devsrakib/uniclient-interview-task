@@ -83,7 +83,7 @@ const SplashScreen = () => {
 
     return (
         <LinearGradient
-            colors={imageIndex === 2 ? ['#6A5AE0', '#AB5CFD'] : ['#ffffff', '#ffffff']}
+            colors={imageIndex === 2 ? ['#8C4AFB', '#9B52FC'] : ['#ffffff', '#ffffff']}
             style={styles.gradientContainer}
         >
             {/* First screen with ImageBackground */}
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     },
     logo: {
         zIndex: 100,
-        marginTop: 20,
+        marginTop: 60,
     },
     button: {
         width: '90%',
